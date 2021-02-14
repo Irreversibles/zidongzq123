@@ -14,14 +14,12 @@ from datetime import datetime, timezone, timedelta
 
 # YOUTH_HEADER 为对象, 其他参数为字符串，自动提现需要自己抓包
 # 选择微信提现30元，立即兑换，在请求包中找到withdraw2的请求，拷贝请求body类型 p=****** 的字符串，放入下面对应参数即可
-# 分享一篇文章，找到 put.json 的请求，拷贝请求体，放入对应参数
 cookies1 = {
   'YOUTH_HEADER': {},
   'YOUTH_READBODY': '',
   'YOUTH_REDBODY': '',
   'YOUTH_READTIMEBODY': '',
-  'YOUTH_WITHDRAWBODY': '',
-  'YOUTH_SHAREBODY': ''
+  'YOUTH_WITHDRAWBODY': ''
 }
 cookies2 = {}
 
@@ -36,14 +34,12 @@ if "YOUTH_HEADER1" in os.environ:
     redBodyVar = f'YOUTH_REDBODY{str(i+1)}'
     readTimeBodyVar = f'YOUTH_READTIMEBODY{str(i+1)}'
     withdrawBodyVar = f'YOUTH_WITHDRAWBODY{str(i+1)}'
-    shareBodyVar = f'YOUTH_SHAREBODY{str(i+1)}'
     if headerVar in os.environ and os.environ[headerVar] and readBodyVar in os.environ and os.environ[readBodyVar] and redBodyVar in os.environ and os.environ[redBodyVar] and readTimeBodyVar in os.environ and os.environ[readTimeBodyVar]:
       globals()['cookies'+str(i + 1)]["YOUTH_HEADER"] = json.loads(os.environ[headerVar])
       globals()['cookies'+str(i + 1)]["YOUTH_READBODY"] = os.environ[readBodyVar]
       globals()['cookies'+str(i + 1)]["YOUTH_REDBODY"] = os.environ[redBodyVar]
       globals()['cookies' + str(i + 1)]["YOUTH_READTIMEBODY"] = os.environ[readTimeBodyVar]
       globals()['cookies' + str(i + 1)]["YOUTH_WITHDRAWBODY"] = os.environ[withdrawBodyVar]
-      globals()['cookies' + str(i + 1)]["YOUTH_SHAREBODY"] = os.environ[shareBodyVar]
       COOKIELIST.append(globals()['cookies'+str(i + 1)])
   print(COOKIELIST)
 
@@ -195,71 +191,23 @@ def luckDraw(headers):
     print(traceback.format_exc())
     return
 
-def timePacket(headers):
-  """
-  计时红包
-  :param headers:
-  :return:
-  """
-  time.sleep(0.3)
-  url = f'{YOUTH_HOST}TimePacket/getReward'
-  try:
-    response = requests_session().post(url=url, data=f'{headers["Referer"].split("?")[1]}', headers=headers, timeout=30).json()
-    print('计时红包')
-    print(response)
-    return
-  except:
-    print(traceback.format_exc())
-    return
-
-def watchWelfareVideo(headers):
-  """
-  观看福利视频
-  :param headers:
-  :return:
-  """
-  time.sleep(0.3)
-  url = f'{YOUTH_HOST}NewTaskIos/recordNum?{headers["Referer"].split("?")[1]}'
-  try:
-    response = requests_session().get(url=url, headers=headers, timeout=30).json()
-    print('观看福利视频')
-    print(response)
-    return
-  except:
-    print(traceback.format_exc())
-    return
-
-def shareArticle(headers, body):
+def shareArticle(headers):
   """
   分享文章
   :param headers:
   :return:
   """
-  url = 'https://ios.baertt.com/v2/article/share/put.json'
-  headers['Content-Type'] = 'application/x-www-form-urlencoded;charset=utf-8'
-  try:
-    response = requests_session().post(url=url, data=body, headers=headers, timeout=30).json()
-    print('分享文章')
-    print(response)
-    return
-  except:
-    print(traceback.format_exc())
-    return
-
-def threeShare(headers, action):
-  """
-  三餐分享
-  :param headers:
-  :return:
-  """
   time.sleep(0.3)
-  url = f'{YOUTH_HOST}ShareNew/execExtractTask'
-  headers['Content-Type'] = 'application/x-www-form-urlencoded;charset=utf-8'
-  body = f'{headers["Referer"].split("?")[1]}&action={action}'
+  url = 'https://focu.youth.cn/article/s?signature=QqvZWbEKpA2yrNR1MnyjPetpZpz2TLdDDw849VGjJl8gXB5keP&uid=52242968&phone_code=4aa0b274198dafebe5c214ea6097d12b&scid=35438728&time=1609414747&app_version=1.8.2&sign=17fe0351fa6378a602c2afd55d6a47c8'
+  readUrl = 'https://focus.youth.cn/article/s?signature=QqvZWbEKpA2yrNR1MnyjPetpZpz2TLdDDw849VGjJl8gXB5keP&uid=52242968&phone_code=4aa0b274198dafebe5c214ea6097d12b&scid=35438728&time=1609414747&app_version=1.8.2&sign=17fe0351fa6378a602c2afd55d6a47c8'
   try:
-    response = requests_session().post(url=url, data=body, headers=headers, timeout=30).json()
-    print('三餐分享')
-    print(response)
+    response1 = requests_session().post(url=url, headers=headers, timeout=30)
+    print('分享文章1')
+    print(response1)
+    time.sleep(0.3)
+    response2 = requests_session().post(url=readUrl, headers=headers, timeout=30)
+    print('分享文章2')
+    print(response2)
     return
   except:
     print(traceback.format_exc())
@@ -650,7 +598,6 @@ def run():
     redBody = account['YOUTH_REDBODY']
     readTimeBody = account['YOUTH_READTIMEBODY']
     withdrawBody = account['YOUTH_WITHDRAWBODY']
-    shareBody = account['YOUTH_SHAREBODY']
     rotaryBody = f'{headers["Referer"].split("&")[15]}&{headers["Referer"].split("&")[8]}'
     sign_res = sign(headers=headers)
     if sign_res and sign_res['status'] == 1:
@@ -679,10 +626,7 @@ def run():
     visit_reward_res = visitReward(body=readBody)
     if visit_reward_res:
       content += f'\n【回访奖励】：+{visit_reward_res["score"]}青豆'
-    shareArticle(headers=headers, body=shareBody)
-    for action in ['beread_extra_reward_one', 'beread_extra_reward_two', 'beread_extra_reward_three']:
-      time.sleep(5)
-      threeShare(headers=headers, action=action)
+    shareArticle(headers=headers)
     open_box_res = openBox(headers=headers)
     if open_box_res:
       content += f'\n【开启宝箱】：+{open_box_res["score"]}青豆 下次奖励{open_box_res["time"] / 60}分钟'
@@ -716,10 +660,7 @@ def run():
               content += f'\n【转盘双倍】：+{double_rotary_res["score"]}青豆 剩余{double_rotary_res["doubleNum"]}次'
 
     rotaryChestReward(headers=headers, body=rotaryBody)
-    for i in range(5):
-      watchWelfareVideo(headers=headers)
-    timePacket(headers=headers)
-    for action in ['watch_article_reward', 'watch_video_reward', 'read_time_two_minutes', 'read_time_sixty_minutes', 'new_fresh_five_video_reward', 'first_share_article']:
+    for action in ['watch_article_reward', 'watch_video_reward', 'read_time_two_minutes', 'read_time_sixty_minutes', 'new_fresh_five_video_reward']:
       time.sleep(5)
       sendTwentyScore(headers=headers, action=action)
     stat_res = incomeStat(headers=headers)
